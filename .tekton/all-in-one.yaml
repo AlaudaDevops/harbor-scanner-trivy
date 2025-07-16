@@ -173,6 +173,8 @@ spec:
               tar --strip-components=1 -xvzf trivy_${trivy_version}_Linux-64bit.tar.gz -C ./bin
               rm trivy_${trivy_version}_Linux-64bit.tar.gz
               
+              ls ./bin
+              
               export GOPROXY=https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
               make test-integration
         workspaces:
