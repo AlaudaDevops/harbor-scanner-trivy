@@ -134,7 +134,7 @@ spec:
       - name: prepare-integration-test
         runAfter:
           - git-clone
-        timeout: 10m
+        timeout: 60m
         retries: 3
         params:
           - name: script
@@ -154,6 +154,9 @@ spec:
               wget https://github.com/aquasecurity/trivy/releases/download/v${trivy_version}/trivy_${trivy_version}_Linux-64bit.tar.gz
               tar -xvzf trivy_${trivy_version}_Linux-64bit.tar.gz -C ${tool_dir}
               rm trivy_${trivy_version}_Linux-64bit.tar.gz
+#              trivy_version=0.62.1
+#              trivy_url=https://build-nexus.alauda.cn/repository/alauda/devops/trivy-cli/alauda-v${trivy_version}/trivy-${trivy_version}-amd64
+#              curl -f -L -o "${tool_dir}/trivy" "${trivy_url}"
 
         taskRef:
           resolver: hub
@@ -261,48 +264,152 @@ spec:
           - name: modcache
             workspace: go-cache
 
-#      - name: result
-#        runAfter:
-#          - build-catalog-image
-#        timeout: 60m
-#        retries: 1
-#        taskRef:
-#          resolver: hub
-#          params:
-#            - name: catalog
-#              value: catalog
-#            - name: kind
-#              value: task
-#            - name: name
-#              value: run-script
-#            - name: version
-#              value: "0.1"
-#
-#        params:
-#          - name: image
-#            value: build-harbor.alauda.cn/devops/nonroot/kustomize:latest
-#          - name: imagePullPolicy
-#            value: Always
-#          - name: script
-#            value: |
-#              echo "⚙️ ===> artifacts in values.yaml format"
-#              cat values.yaml
-#
-#              echo "⚙️ ===> release artifacts"
-#              export NEXUS_USERNAME=`cat $(workspaces.secret.path)/username`
-#              export NEXUS_PASSWORD=`cat $(workspaces.secret.path)/password`
-#              export OUTPUT_FILE=$(results.array-result.path)
-#              export BRANCH=$(params.git-revision)
-#              export COMMIT_ID=$(params.git-commit)
-#              export REPO=catalog
-#              build-releases.sh
-#              cat $OUTPUT_FILE
-#
-#        workspaces:
-#          - name: source
-#            workspace: source
-#          - name: secret
-#            workspace: nexus-auth
+      - name: build-amd64
+        timeout: 60m
+        retries: 0
+
+        runAfter:
+          - git-clone
+
+        taskRef:
+          resolver: hub
+          params:
+            - name: catalog
+              value: extras
+            - name: kind
+              value: task
+            - name: name
+              value: golang-build
+            - name: version
+              value: '0.4'
+
+        params:
+          - name: command
+            value: |
+              go build -x -v -o scanner-trivy-$(params.artifact-version)-amd64 cmd/scanner-trivy/main.go
+          - name: GOPROXY
+            value: https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
+          - name: GOARCH
+            value: amd64
+          - name: CGO_ENABLED
+            value: "0"
+        workspaces:
+          - name: source
+            workspace: source
+          - name: cache
+            workspace: go-cache
+
+      - name: build-arm64
+        timeout: 60m
+        retries: 0
+
+        runAfter:
+          - git-clone
+
+        taskRef:
+          resolver: hub
+          params:
+            - name: catalog
+              value: extras
+            - name: kind
+              value: task
+            - name: name
+              value: golang-build
+            - name: version
+              value: '0.4'
+
+        params:
+          - name: command
+            value: |
+              go build -x -v -o scanner-trivy-$(params.artifact-version)-arm64 cmd/scanner-trivy/main.go
+          - name: GOPROXY
+            value: https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
+          - name: GOARCH
+            value: arm64
+          - name: CGO_ENABLED
+            value: "0"
+        workspaces:
+          - name: source
+            workspace: source
+          - name: cache
+            workspace: go-cache
+
+      - name: trivy-scan
+        timeout: 60m
+        retries: 0
+
+        runAfter:
+          - build-amd64
+
+        taskRef:
+          resolver: hub
+          params:
+            - name: catalog
+              value: catalog
+            - name: kind
+              value: task
+            - name: name
+              value: trivy-scanner
+            - name: version
+              value: '0.4'
+
+        params:
+          - name: COMMAND
+            value: |
+              set -ex
+              trivy fs --scanners vuln \
+                --exit-code=1 \
+                --db-repository=registry.alauda.cn:60070/ops/aquasecurity/trivy-db \
+                --java-db-repository=registry.alauda.cn:60070/ops/aquasecurity/trivy-java-db \
+                ./scanner-trivy-$(params.artifact-version)-amd64
+        workspaces:
+          - name: source
+            workspace: source
+
+      - name: upload-to-nexus
+        runAfter:
+          - build-amd64
+          - build-arm64
+        timeout: 60m
+        retries: 3
+        taskRef:
+          resolver: hub
+          params:
+            - name: catalog
+              value: catalog
+            - name: kind
+              value: task
+            - name: name
+              value: run-script
+            - name: version
+              value: "0.1"
+
+        params:
+          - name: script
+            value: |
+              NEXUS_URL="https://build-nexus.alauda.cn/repository/alauda/devops"     
+              UPLOAD_PATH="scanner-trivy/$(params.git-revision)"                   
+              USERNAME=`cat $(workspaces.secret.path)/username`      
+              PASSWORD=`cat $(workspaces.secret.path)/password`
+              FILES=("scanner-trivy-$(params.artifact-version)-amd64" "scanner-trivy-$(params.artifact-version)-arm64")
+              
+              for file in "${FILES[@]}"; do
+                  if [[ -f "$file" ]]; then
+                      echo "Uploading $file ..."
+                      curl -u "$USERNAME:$PASSWORD" \
+                           --upload-file "$file" \
+                           "$NEXUS_URL/repository/$REPOSITORY/$UPLOAD_PATH/$file"
+                      echo "Done: $file"
+                  else
+                      echo "File not found: $file"
+                  fi
+              done
+
+        workspaces:
+          - name: source
+            workspace: source
+          - name: secret
+            workspace: nexus-auth
 
     workspaces:
       - name: source
@@ -396,6 +503,22 @@ spec:
           cpu: "2"
           memory: "2Gi"
     - pipelineTaskName: component-test
+      computeResources:
+        limits:
+          cpu: "4"
+          memory: "4Gi"
+        requests:
+          cpu: "2"
+          memory: "2Gi"
+    - pipelineTaskName: build-amd64
+      computeResources:
+        limits:
+          cpu: "4"
+          memory: "4Gi"
+        requests:
+          cpu: "2"
+          memory: "2Gi"
+    - pipelineTaskName: build-arm64
       computeResources:
         limits:
           cpu: "4"
