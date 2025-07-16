@@ -158,6 +158,21 @@ spec:
                 export GOCACHE="${gocache}" GOMODCACHE="${gomodcache}"
               fi
               
+              echo "=> ✅ Install Docker CLI"
+              docker_version=28.1.1 
+              docker_arch="x86_64"
+              mkdir bin
+              export PATH=$PATH:$(realpath ./bin)
+              wget https://download.docker.com/linux/static/stable/${docker_arch}/docker-${docker_version}.tgz
+              tar --strip-components=1 -xvzf docker-${docker_version}.tgz -C ./bin
+              rm docker-${docker_version}.tgz
+              
+              echo "=> ✅ Install Trivy CLI"
+              trivy_version=0.62.1
+              wget https://github.com/aquasecurity/trivy/releases/download/v${trivy_version}/trivy_${trivy_version}_Linux-64bit.tar.gz
+              tar --strip-components=1 -xvzf trivy_${trivy_version}_Linux-64bit.tar.gz -C ./bin
+              rm trivy_${trivy_version}_Linux-64bit.tar.gz
+              
               export GOPROXY=https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
               make test-integration
         workspaces:
@@ -190,6 +205,21 @@ spec:
                 echo "=> ✅ Setting cache env GOCACHE=${gocache} GOMODCACHE=${gomodcache}"
                 export GOCACHE="${gocache}" GOMODCACHE="${gomodcache}"
               fi
+              
+              echo "=> ✅ Install Docker CLI"
+              docker_version=28.1.1 
+              docker_arch="x86_64"
+              mkdir bin
+              export PATH=$PATH:$(realpath ./bin)
+              wget https://download.docker.com/linux/static/stable/${docker_arch}/docker-${docker_version}.tgz && \
+              tar --strip-components=1 -xvzf docker-${docker_version}.tgz -C ./bin &&  \
+              rm docker-${docker_version}.tgz
+              
+              echo "=> ✅ Install Trivy CLI"
+              trivy_version=0.62.1
+              wget https://github.com/aquasecurity/trivy/releases/download/v${trivy_version}/trivy_${trivy_version}_Linux-64bit.tar.gz
+              tar --strip-components=1 -xvzf trivy_${trivy_version}_Linux-64bit.tar.gz -C ./bin
+              rm trivy_${trivy_version}_Linux-64bit.tar.gz
               
               export GOPROXY=https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
               make test-component
