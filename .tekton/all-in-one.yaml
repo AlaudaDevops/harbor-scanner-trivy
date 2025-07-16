@@ -161,7 +161,7 @@ spec:
               echo "=> ✅ Install Docker CLI"
               docker_version=28.1.1 
               docker_arch="x86_64"
-              mkdir bin
+              mkdir -p bin
               export PATH=$PATH:$(realpath ./bin)
               wget https://download.docker.com/linux/static/stable/${docker_arch}/docker-${docker_version}.tgz
               tar --strip-components=1 -xvzf docker-${docker_version}.tgz -C ./bin
@@ -209,7 +209,7 @@ spec:
               echo "=> ✅ Install Docker CLI"
               docker_version=28.1.1 
               docker_arch="x86_64"
-              mkdir bin
+              mkdir -p bin
               export PATH=$PATH:$(realpath ./bin)
               wget https://download.docker.com/linux/static/stable/${docker_arch}/docker-${docker_version}.tgz && \
               tar --strip-components=1 -xvzf docker-${docker_version}.tgz -C ./bin &&  \
