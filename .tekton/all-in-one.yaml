@@ -32,6 +32,8 @@ spec:
       value: "{{ source_branch }}"
     - name: git-commit
       value: "{{ revision }}"
+    - name: artifact-version
+      value: "0.33.1"
 
   pipelineSpec:
     description: The pipeline is used to combine multiple pipeline templates
