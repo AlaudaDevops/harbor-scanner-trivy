@@ -104,7 +104,6 @@ spec:
       - name: test
         timeout: 60m
         retries: 0
-        onError: continue
 
         runAfter:
           - git-clone
@@ -141,19 +140,20 @@ spec:
         params:
           - name: script
             value: |
+              tool_dir=./bin
+              
               echo "=> ✅ Install Docker CLI"
               docker_version=28.1.1 
               docker_arch="x86_64"
-              mkdir -p bin
-              export PATH=$PATH:$(realpath ./bin)
+              mkdir -p ${tool_dir}
               wget https://download.docker.com/linux/static/stable/${docker_arch}/docker-${docker_version}.tgz
-              tar --strip-components=1 -xvzf docker-${docker_version}.tgz -C ./bin
+              tar --strip-components=1 -xvzf docker-${docker_version}.tgz -C ${tool_dir}
               rm docker-${docker_version}.tgz
               
               echo "=> ✅ Install Trivy CLI"
               trivy_version=0.62.1
               wget https://github.com/aquasecurity/trivy/releases/download/v${trivy_version}/trivy_${trivy_version}_Linux-64bit.tar.gz
-              tar -xvzf trivy_${trivy_version}_Linux-64bit.tar.gz -C ./bin
+              tar -xvzf trivy_${trivy_version}_Linux-64bit.tar.gz -C ${tool_dir}
               rm trivy_${trivy_version}_Linux-64bit.tar.gz
 
         taskRef:
@@ -172,7 +172,6 @@ spec:
             workspace: source
 
       - name: integration-test
-        onError: continue
         timeout: 60m
         retries: 0
 
@@ -187,6 +186,8 @@ spec:
             value: "registry.alauda.cn:60080/devops/nonroot/builder-go:latest"
           - name: command
             value: |
+              export PATH=$PATH:$(realpath ./bin)
+              
               # bind go cache
               if [ "$(workspaces.modcache.bound)" == "true" ]; then
                 gocache=$(workspaces.modcache.path)/gocache
@@ -207,10 +208,9 @@ spec:
       - name: component-test
         timeout: 60m
         retries: 0
-        onError: continue
 
         runAfter:
-          - prepare-integration-test
+          - integration-test
 
         taskRef:
           name: docker-in-docker
@@ -220,6 +220,8 @@ spec:
             value: "registry.alauda.cn:60080/devops/nonroot/builder-go:latest"
           - name: command
             value: |
+              export PATH=$PATH:$(realpath ./bin)
+              
               # bind go cache
               if [ "$(workspaces.modcache.bound)" == "true" ]; then
                 gocache=$(workspaces.modcache.path)/gocache
