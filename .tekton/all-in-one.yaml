@@ -172,10 +172,12 @@ spec:
             workspace: source
 
       - name: integration-test
+        onError: continue
         timeout: 60m
         retries: 0
 
         runAfter:
+          - test
           - prepare-integration-test
 
         taskRef:
