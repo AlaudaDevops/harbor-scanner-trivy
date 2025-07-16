@@ -157,7 +157,6 @@ spec:
 #              tar -xvzf trivy_${trivy_version}_Linux-64bit.tar.gz -C ${tool_dir}
 #              rm trivy_${trivy_version}_Linux-64bit.tar.gz
 
-#              trivy_url=https://build-nexus.alauda.cn/repository/alauda/devops/trivy-cli/alauda-v${trivy_version}/trivy-${trivy_version}-amd64
               trivy_url=https://build-nexus.alauda.cn/repository/alauda/devops/trivy-cli/feat/alauda-branch-init/trivy-${trivy_version}-amd64
               curl -f -L -o "${tool_dir}/trivy" "${trivy_url}"
 
