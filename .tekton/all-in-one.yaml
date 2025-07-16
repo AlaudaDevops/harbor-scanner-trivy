@@ -311,19 +311,27 @@ spec:
         fsGroupChangePolicy: "OnRootMismatch"
 
   taskRunSpecs:
-    - pipelineTaskName: unit-test
+    - pipelineTaskName: test
       computeResources:
         limits:
-          cpu: "8"
-          memory: "8Gi"
-        requests:
           cpu: "4"
           memory: "4Gi"
+        requests:
+          cpu: "2"
+          memory: "2Gi"
     - pipelineTaskName: integration-test
       computeResources:
         limits:
-          cpu: "8"
-          memory: "8Gi"
-        requests:
           cpu: "4"
           memory: "4Gi"
+        requests:
+          cpu: "2"
+          memory: "2Gi"
+    - pipelineTaskName: component-test
+      computeResources:
+        limits:
+          cpu: "4"
+          memory: "4Gi"
+        requests:
+          cpu: "2"
+          memory: "2Gi"
