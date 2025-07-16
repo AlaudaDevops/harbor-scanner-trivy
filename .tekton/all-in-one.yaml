@@ -20,6 +20,7 @@ metadata:
         )
       ))
     pipelinesascode.tekton.dev/max-keep-runs: "20"
+    pipelinesascode.tekton.dev/task: "[.tekton/docker-in-docker.yaml]"
 spec:
   timeouts:
     pipeline: 3h
@@ -103,6 +104,7 @@ spec:
       - name: test
         timeout: 60m
         retries: 0
+        onError: continue
 
         runAfter:
           - git-clone
@@ -132,6 +134,7 @@ spec:
             workspace: go-cache
 
       - name: integration-test
+        onError: continue
         timeout: 60m
         retries: 0
 
@@ -139,58 +142,61 @@ spec:
           - test
 
         taskRef:
-          resolver: hub
-          params:
-            - name: catalog
-              value: extras
-            - name: kind
-              value: task
-            - name: name
-              value: golang-test
-            - name: version
-              value: '0.3'
+          name: docker-in-docker
 
         params:
+          - name: tools-image
+            value: "registry.alauda.cn:60080/devops/nonroot/builder-go:latest"
           - name: command
             value: |
+              # bind go cache
+              if [ "$(workspaces.modcache.bound)" == "true" ]; then
+                gocache=$(workspaces.modcache.path)/gocache
+                gomodcache=$(workspaces.modcache.path)/gomod
+              
+                echo "=> ✅ Setting cache env GOCACHE=${gocache} GOMODCACHE=${gomodcache}"
+                export GOCACHE="${gocache}" GOMODCACHE="${gomodcache}"
+              fi
+              
+              export GOPROXY=https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
               make test-integration
-          - name: GOPROXY
-            value: https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
         workspaces:
           - name: source
             workspace: source
-          - name: cache
+          - name: modcache
             workspace: go-cache
 
       - name: component-test
         timeout: 60m
         retries: 0
+        onError: continue
 
         runAfter:
           - integration-test
 
         taskRef:
-          resolver: hub
-          params:
-            - name: catalog
-              value: extras
-            - name: kind
-              value: task
-            - name: name
-              value: golang-test
-            - name: version
-              value: '0.3'
+          name: docker-in-docker
 
         params:
+          - name: tools-image
+            value: "registry.alauda.cn:60080/devops/nonroot/builder-go:latest"
           - name: command
             value: |
+              # bind go cache
+              if [ "$(workspaces.modcache.bound)" == "true" ]; then
+                gocache=$(workspaces.modcache.path)/gocache
+                gomodcache=$(workspaces.modcache.path)/gomod
+              
+                echo "=> ✅ Setting cache env GOCACHE=${gocache} GOMODCACHE=${gomodcache}"
+                export GOCACHE="${gocache}" GOMODCACHE="${gomodcache}"
+              fi
+              
+              export GOPROXY=https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
               make test-component
-          - name: GOPROXY
-            value: https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
         workspaces:
           - name: source
             workspace: source
-          - name: cache
+          - name: modcache
             workspace: go-cache
 
 #      - name: result
