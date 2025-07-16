@@ -20,7 +20,6 @@ metadata:
         )
       ))
     pipelinesascode.tekton.dev/max-keep-runs: "20"
-    pipelinesascode.tekton.dev/task: "[.tekton/docker-in-docker.yaml]"
 spec:
   timeouts:
     pipeline: 3h
@@ -177,11 +176,21 @@ spec:
         retries: 0
 
         runAfter:
-          - test
           - prepare-integration-test
 
         taskRef:
-          name: docker-in-docker
+          resolver: hub
+          params:
+            - name: catalog
+              value: alauda
+            - name: type
+              value: tekton
+            - name: kind
+              value: task
+            - name: name
+              value: docker-in-docker
+            - name: version
+              value: "0.2"
 
         params:
           - name: tools-image
@@ -212,10 +221,21 @@ spec:
         retries: 0
 
         runAfter:
-          - integration-test
+          - prepare-integration-test
 
         taskRef:
-          name: docker-in-docker
+          resolver: hub
+          params:
+            - name: catalog
+              value: alauda
+            - name: type
+              value: tekton
+            - name: kind
+              value: task
+            - name: name
+              value: docker-in-docker
+            - name: version
+              value: "0.2"
 
         params:
           - name: tools-image
