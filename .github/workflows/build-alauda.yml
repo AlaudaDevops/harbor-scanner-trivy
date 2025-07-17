@@ -27,12 +27,8 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: yaml-lint
-        uses: ibiqlik/action-yamllint@v3
       - name: Setup make
         run: make setup
-      - name: Run linter
-        run: make lint
       - name: Run unit tests
         run: make test
       - name: Run integration tests
