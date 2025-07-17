@@ -133,7 +133,7 @@ spec:
           - name: cache
             workspace: go-cache
 
-      - name: prepare-integration-test
+      - name: prepare-component-test
         runAfter:
           - git-clone
         timeout: 60m
@@ -175,58 +175,12 @@ spec:
           - name: source
             workspace: source
 
-      - name: integration-test
-        onError: continue
-        timeout: 60m
-        retries: 0
-
-        runAfter:
-          - prepare-integration-test
-
-        taskRef:
-          resolver: hub
-          params:
-            - name: catalog
-              value: alauda
-            - name: type
-              value: tekton
-            - name: kind
-              value: task
-            - name: name
-              value: docker-in-docker
-            - name: version
-              value: "0.2"
-
-        params:
-          - name: tools-image
-            value: "registry.alauda.cn:60080/devops/nonroot/builder-go:latest"
-          - name: command
-            value: |
-              export PATH=$PATH:$(realpath ./bin)
-              
-              # bind go cache
-              if [ "$(workspaces.modcache.bound)" == "true" ]; then
-                gocache=$(workspaces.modcache.path)/gocache
-                gomodcache=$(workspaces.modcache.path)/gomod
-              
-                echo "=> ✅ Setting cache env GOCACHE=${gocache} GOMODCACHE=${gomodcache}"
-                export GOCACHE="${gocache}" GOMODCACHE="${gomodcache}"
-              fi
-              
-              export GOPROXY=https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
-              make test-integration
-        workspaces:
-          - name: source
-            workspace: source
-          - name: modcache
-            workspace: go-cache
-
       - name: component-test
         timeout: 60m
         retries: 0
 
         runAfter:
-          - prepare-integration-test
+          - prepare-component-test
 
         taskRef:
           resolver: hub
@@ -409,7 +363,6 @@ spec:
           - trivy-scan-amd64
           - trivy-scan-arm64
           - test
-          - integration-test
           - component-test
         timeout: 60m
         retries: 3
@@ -529,14 +482,6 @@ spec:
 
   taskRunSpecs:
     - pipelineTaskName: test
-      computeResources:
-        limits:
-          cpu: "4"
-          memory: "4Gi"
-        requests:
-          cpu: "2"
-          memory: "2Gi"
-    - pipelineTaskName: integration-test
       computeResources:
         limits:
           cpu: "4"
