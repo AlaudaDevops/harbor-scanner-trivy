@@ -381,7 +381,7 @@ spec:
         params:
           - name: script
             value: |
-              NEXUS_URL="https://build-nexus.alauda.cn/repository/alauda/devops"
+              NEXUS_URL="https://build-nexus.alauda.cn"
               REPOSITORY="alauda/devops/scanner-trivy"
               UPLOAD_PATH="$(params.git-revision)"
               USERNAME=`cat $(workspaces.secret.path)/username`      
