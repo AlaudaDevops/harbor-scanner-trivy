@@ -1,0 +1,36 @@
+---
+name: Release
+on:
+  push:
+    branches:
+      - alauda-v*
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Setup make
+        run: make setup
+      - name: Run linter
+        run: make lint
+      - name: Run unit tests
+        run: make test
+      - name: Run integration tests
+        run: make test-integration
+      - name: Run component tests
+        run: make test-component
+      - name: Release
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          version: v1.9.2
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
