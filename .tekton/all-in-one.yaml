@@ -213,6 +213,7 @@ spec:
               fi
               
               export GOPROXY=https://build-nexus.alauda.cn/repository/golang/,https://goproxy.cn,direct
+              export GOMAXPROCS=4
               make test-component
         workspaces:
           - name: source
