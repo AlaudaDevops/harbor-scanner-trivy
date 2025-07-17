@@ -71,7 +71,7 @@ spec:
     results:
       - name: releases-url
         type: array
-        value: $(tasks.result.results.array-result[*])
+        value: $(tasks.upload-to-nexus.results.array-result[*])
         description: Target value and release artifacts URL
 
     tasks:
