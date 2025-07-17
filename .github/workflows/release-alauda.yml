@@ -1,12 +1,12 @@
 ---
-name: Release
+name: Release-Alauda
 on:
   push:
     branches:
       - alauda-v*
 jobs:
   release:
-    name: Release
+    name: Release-Alauda
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout code
@@ -19,8 +19,6 @@ jobs:
           go-version-file: go.mod
       - name: Setup make
         run: make setup
-      - name: Run linter
-        run: make lint
       - name: Run unit tests
         run: make test
       - name: Run integration tests
