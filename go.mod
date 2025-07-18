@@ -13,7 +13,7 @@ require (
 	github.com/gorilla/schema v1.4.1
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/prometheus/client_golang v1.19.0
-	github.com/redis/go-redis/v9 v9.6.1
+	github.com/redis/go-redis/v9 v9.6.3
 	github.com/samber/lo v1.47.0
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.32.0
