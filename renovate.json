@@ -3,7 +3,9 @@
   "extends": [
     "github>AlaudaDevops/renovate-config:base"
   ],
-  "baseBranchPatterns": [
-    "$default"
+  "baseBranches": ["/^alauda-v.*/"],
+  "postUpdateOptions": ["gomodTidy"],
+  "assignees": [
+    "yuzichen12123"
   ]
 }
