@@ -84,4 +84,4 @@ jobs:
   release-alauda:
     name: Release Alauda
     needs: [tag]
-    uses: ./.github/workflows/reusable-release-alauda.yaml
+    uses: ./.github/workflows/reusable-release-alauda.yml
