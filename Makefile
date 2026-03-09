@@ -28,8 +28,8 @@ lint:
 	./bin/golangci-lint --build-tags component,integration run -v
 
 setup:
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s v1.21.0
-	curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.3
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -sx v1.21.0
+	curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -sx -- -b /usr/local/bin v0.48.3
 
 submodule:
 	git submodule update --init --recursive
