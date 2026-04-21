@@ -23,6 +23,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/mutate"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/google/go-containerregistry/pkg/v1/tarball"
+	"github.com/google/go-containerregistry/pkg/v1/types"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -319,6 +320,14 @@ func TestRestAPI(t *testing.T) {
 			err = json.NewDecoder(rs.Body).Decode(&got)
 			require.NoError(t, err)
 			got.GeneratedAt = time.Time{} // ignore generated_at
+			for i := range got.Vulnerabilities {
+				if got.Vulnerabilities[i].Layer == nil {
+					continue
+				}
+				// Trivy/go-containerregistry versions may populate layer metadata differently.
+				got.Vulnerabilities[i].Layer.Digest = ""
+				got.Vulnerabilities[i].Layer.DiffID = ""
+			}
 
 			want := harbor.ScanReport{
 				Artifact: harbor.Artifact{
@@ -578,7 +587,7 @@ func setupTestSBOM(t *testing.T, reg *url.URL) name.Digest {
 	})
 	require.NoError(t, err)
 
-	img = mutate.ArtifactType(img, "application/vnd.goharbor.harbor.sbom.v1")
+	img = mutate.ConfigMediaType(img, types.MediaType("application/vnd.goharbor.harbor.sbom.v1"))
 
 	// Push
 	err = remote.Write(ref, img)
