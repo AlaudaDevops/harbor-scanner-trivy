@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
+	"github.com/google/go-containerregistry/pkg/v1/partial"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"golang.org/x/xerrors"
 	"io"
@@ -73,12 +74,12 @@ func newTarget(imageRef ImageRef, config etc.Trivy, ambassador ext.Ambassador) (
 		ref: imageRef,
 	}
 
-	m, err := target.img.Manifest()
+	artifactType, err := partial.ArtifactType(target.img)
 	if err != nil {
-		return ScanTarget{}, xerrors.Errorf("getting image manifest: %w", err)
+		return ScanTarget{}, xerrors.Errorf("getting image artifact type: %w", err)
 	}
 
-	switch m.ArtifactType {
+	switch artifactType {
 	case "application/vnd.goharbor.harbor.sbom.v1":
 		target.kind = TargetSBOM
 		if target.filePath, err = downloadSBOM(img, config.CacheDir, ambassador); err != nil {

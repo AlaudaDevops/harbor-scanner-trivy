@@ -191,7 +191,9 @@ func TestWrapper_Scan(t *testing.T) {
 
 		fakeImage := &fake.FakeImage{}
 		fakeImage.ManifestReturns(&v1.Manifest{
-			ArtifactType: "application/vnd.goharbor.harbor.sbom.v1",
+			Config: v1.Descriptor{
+				MediaType: "application/vnd.goharbor.harbor.sbom.v1",
+			},
 		}, nil)
 		fakeLayer, err := random.Layer(1024, types.DockerLayer)
 		require.NoError(t, err, "failed to create fake layer")
