@@ -3,7 +3,7 @@ module github.com/aquasecurity/harbor-scanner-trivy
 // Modified by Alauda on 2026-10-14: Go version and dependency versions raised for security fixes
 // (DEVOPS-44747); go.sum updated to match.
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/alicebob/miniredis/v2 v2.33.0
